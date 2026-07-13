@@ -34,7 +34,6 @@ app.get("/", (req, res) => {
   res.send("LtraFume Backend is running 🚀");
 });
 
-
 app.set("trust proxy", 1); // needed behind reverse proxies (Render, Railway, Nginx, etc.) for correct rate-limit/IP + secure cookies
 
 // ---------- SECURITY MIDDLEWARE ----------
@@ -46,7 +45,16 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    // In production we rely on cookie auth. If CLIENT_URL is missing/wrong,
+    // the browser will block credentialed requests.
+    origin: (origin, callback) => {
+      // Allow non-browser requests (mobile, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      const clientUrl = process.env.CLIENT_URL;
+      if (!clientUrl) return callback(null, false);
+      if (origin === clientUrl) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
