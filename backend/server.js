@@ -1,10 +1,6 @@
 const path = require("path");
 require("dotenv").config();
 
-app.get("/", (req, res) => {
-  res.send("LtraFume Backend is running 🚀");
-});
-
 const express = require("express");
 const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
@@ -33,6 +29,11 @@ const paymentController = require("./controllers/paymentController");
 connectDB();
 
 const app = express();
+
+app.get("/", (req, res) => {
+  res.send("LtraFume Backend is running 🚀");
+});
+
 
 app.set("trust proxy", 1); // needed behind reverse proxies (Render, Railway, Nginx, etc.) for correct rate-limit/IP + secure cookies
 
