@@ -1,6 +1,10 @@
 const path = require("path");
 require("dotenv").config();
 
+app.get("/", (req, res) => {
+  res.send("LtraFume Backend is running 🚀");
+});
+
 const express = require("express");
 const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
