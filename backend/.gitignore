@@ -1,0 +1,10 @@
+node_modules/
+.env
+uploads/products/*
+uploads/reviews/*
+uploads/avatars/*
+!uploads/products/.gitkeep
+!uploads/reviews/.gitkeep
+!uploads/avatars/.gitkeep
+*.log
+.DS_Store
