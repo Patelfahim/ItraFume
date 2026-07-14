@@ -1,4 +1,3 @@
-const path = require("path");
 require("dotenv").config();
 
 const express = require("express");
@@ -29,6 +28,22 @@ const paymentController = require("./controllers/paymentController");
 connectDB();
 
 const app = express();
+
+const fs = require("fs");
+const path = require("path");
+
+const uploadDirs = [
+  path.join(__dirname, "uploads"),
+  path.join(__dirname, "uploads", "products"),
+  path.join(__dirname, "uploads", "reviews"),
+  path.join(__dirname, "uploads", "avatars"),
+];
+
+uploadDirs.forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 
 app.set("trust proxy", 1); // needed behind reverse proxies (Render, Railway, Nginx, etc.) for correct rate-limit/IP + secure cookies
