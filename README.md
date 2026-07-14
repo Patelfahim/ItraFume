@@ -49,59 +49,6 @@ itrafume-ecommerce/
 
 ---
 
-## Local Development
-
-### 1. Prerequisites
-- Node.js 18+
-- MongoDB running locally (`mongodb://127.0.0.1:27017`) or a free MongoDB Atlas cluster
-- Razorpay test account → https://dashboard.razorpay.com/app/keys (test mode)
-- Stripe test account → https://dashboard.stripe.com/test/apikeys
-- An SMTP sender — easiest is a Gmail account with an **App Password** (not your normal password),
-  or a free tier of SendGrid/Mailgun/Brevo
-
-### 2. Backend setup
-
-```bash
-cd backend
-cp .env.example .env
-# edit .env and fill in MONGO_URI, JWT secrets, Razorpay/Stripe test keys, SMTP creds
-npm install
-npm run seed        # creates sample products (using your brand media) + an admin + demo customer
-npm run dev          # starts on http://localhost:5000
-```
-
-The seed script prints out login credentials, e.g.:
-```
-Admin login:    admin@itrafume.com / ChangeMe@12345
-Customer login: customer@itrafume.com / Customer@123
-```
-**Change the admin password immediately after first login in production.**
-
-### 3. Frontend setup
-
-```bash
-cd frontend
-npm install
-npm run dev          # starts on http://localhost:5173, proxies /api to :5000
-```
-
-Visit `http://localhost:5173`.
-
-### 4. Webhooks (optional but recommended for reliability)
-
-Payment confirmation happens two ways:
-- **Immediately** after checkout (client-side verification call for Razorpay, redirect for Stripe)
-- **Via webhook**, as a reliable fallback in case the browser closes before step 1 completes
-
-To test webhooks locally, use the Stripe CLI (`stripe listen --forward-to localhost:5000/api/payments/stripe/webhook`)
-and Razorpay's webhook testing tool from the dashboard, pointing at your local tunnel (e.g. ngrok).
-In production, set the webhook URLs in each dashboard to:
-- Razorpay: `https://yourdomain.com/api/payments/razorpay/webhook` (event: `payment.captured`)
-- Stripe: `https://yourdomain.com/api/payments/stripe/webhook` (event: `checkout.session.completed`)
-
-Copy the webhook signing secrets into `RAZORPAY_WEBHOOK_SECRET` and `STRIPE_WEBHOOK_SECRET`.
-
----
 
 
 
