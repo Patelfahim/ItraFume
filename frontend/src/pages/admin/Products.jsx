@@ -383,6 +383,10 @@ const AdminProducts = () => {
                     + Add Variant
                   </button>
                 </div>
+                <p className="text-[11px] text-on-surface-variant mt-1">
+                  Tip: In the media uploader, set one media item as the cover
+                  image.
+                </p>
                 {form.variants.map((v, idx) => (
                   <div key={idx} className="grid grid-cols-5 gap-2 mb-2">
                     <input

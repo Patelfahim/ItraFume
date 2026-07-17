@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import toast from 'react-hot-toast';
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
+import toast from "react-hot-toast";
 
 const CartContext = createContext(null);
-const STORAGE_KEY = 'itrafume_cart';
+const STORAGE_KEY = "itrafume_cart";
 
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState(() => {
@@ -21,12 +21,18 @@ export const CartProvider = ({ children }) => {
   const addToCart = (product, variant, quantity = 1) => {
     setItems((prev) => {
       const existingIndex = prev.findIndex(
-        (i) => i.productId === product._id && i.variantId === variant._id
+        (i) => i.productId === product._id && i.variantId === variant._id,
       );
       if (existingIndex > -1) {
         const updated = [...prev];
-        const newQty = Math.min(updated[existingIndex].quantity + quantity, variant.stock);
-        updated[existingIndex] = { ...updated[existingIndex], quantity: newQty };
+        const newQty = Math.min(
+          updated[existingIndex].quantity + quantity,
+          variant.stock,
+        );
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: newQty,
+        };
         return updated;
       }
       return [
@@ -38,7 +44,10 @@ export const CartProvider = ({ children }) => {
           name: product.name,
           size: variant.size,
           price: variant.price,
-          image: product.media?.find((m) => m.type === 'image')?.url || '',
+          image: product.media?.find((m) => m.type === "image")?.url || "",
+          productMedia: (product.media || []).map((m) => ({
+            ...m,
+          })),
           quantity: Math.min(quantity, variant.stock),
           maxStock: variant.stock,
         },
@@ -52,13 +61,17 @@ export const CartProvider = ({ children }) => {
       prev.map((i) =>
         i.productId === productId && i.variantId === variantId
           ? { ...i, quantity: Math.max(1, Math.min(quantity, i.maxStock)) }
-          : i
-      )
+          : i,
+      ),
     );
   };
 
   const removeFromCart = (productId, variantId) => {
-    setItems((prev) => prev.filter((i) => !(i.productId === productId && i.variantId === variantId)));
+    setItems((prev) =>
+      prev.filter(
+        (i) => !(i.productId === productId && i.variantId === variantId),
+      ),
+    );
   };
 
   const clearCart = () => setItems([]);
@@ -69,13 +82,21 @@ export const CartProvider = ({ children }) => {
         subtotal: acc.subtotal + i.price * i.quantity,
         totalQuantity: acc.totalQuantity + i.quantity,
       }),
-      { subtotal: 0, totalQuantity: 0 }
+      { subtotal: 0, totalQuantity: 0 },
     );
   }, [items]);
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, updateQuantity, removeFromCart, clearCart, subtotal, totalQuantity }}
+      value={{
+        items,
+        addToCart,
+        updateQuantity,
+        removeFromCart,
+        clearCart,
+        subtotal,
+        totalQuantity,
+      }}
     >
       {children}
     </CartContext.Provider>
@@ -84,6 +105,6 @@ export const CartProvider = ({ children }) => {
 
 export const useCart = () => {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error('useCart must be used within CartProvider');
+  if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 };
