@@ -71,6 +71,7 @@ const ProductDetail = () => {
   const media = (product.media || []).map((m) => ({
     ...m,
     url: normalizeMediaUrl(m.url),
+    thumbnail: normalizeMediaUrl(m.thumbnail),
   }));
 
   const currentMedia = media[activeMedia];
@@ -104,6 +105,7 @@ const ProductDetail = () => {
                 autoPlay
                 muted
                 loop
+                poster={currentMedia?.thumbnail}
                 className="w-full h-full object-cover"
               />
             ) : (

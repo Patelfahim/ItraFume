@@ -15,7 +15,9 @@ const ProductCard = ({ product }) => {
   const media = (product.media || []).map((m) => ({
     ...m,
     url: normalizeMediaUrl(m.url),
+    thumbnail: normalizeMediaUrl(m.thumbnail),
   }));
+
   const image = media.find((m) => m.type === "image");
   const lowestVariant = product.variants?.reduce(
     (min, v) => (v.price < min.price ? v : min),
@@ -29,13 +31,15 @@ const ProductCard = ({ product }) => {
       className="card group block overflow-hidden"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-surface-container">
-        {image && (
+        {image ? (
           <img
             src={image?.url}
             alt={image?.alt || product.name}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary-container/20" />
         )}
         {product.isBestseller && (
           <span className="absolute top-3 left-3 bg-primary text-on-primary text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-sm">

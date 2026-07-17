@@ -338,6 +338,19 @@ const Checkout = () => {
                       <p className="text-xs text-on-surface-variant">
                         {item.size} × {item.quantity}
                       </p>
+                      {item.productMedia?.length > 0 && (
+                        <div className="mt-2">
+                          <img
+                            src={
+                              item.productMedia[0]?.url?.startsWith("/uploads/")
+                                ? `${import.meta.env.VITE_API_URL}${item.productMedia[0].url}`
+                                : item.productMedia[0]?.url
+                            }
+                            alt={item.name}
+                            className="w-14 h-10 object-cover rounded-sm bg-surface-container-lowest"
+                          />
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm font-semibold ml-2 flex-shrink-0">
                       ₹{(item.price * item.quantity).toFixed(0)}
