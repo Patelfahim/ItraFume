@@ -58,11 +58,10 @@ console.log("CLIENT_URL =", process.env.CLIENT_URL);
 
 app.use(
   cors({
-    origin: "https://itrafume.vercel.app",
+    origin: process.env.CLIENT_URL,
     credentials: true,
-  }),
+  })
 );
-
 app.get("/", (req, res) => {
   res.send("ItraFume Backend is running 🚀");
 });
