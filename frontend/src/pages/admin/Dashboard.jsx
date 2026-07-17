@@ -13,7 +13,9 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    api.get("/admin/dashboard-stats").then(({ data }) => setStats(data.data));
+    api
+      .get("/admin/dashboard-stats")
+      .then(({ data }) => setStats(data.data || data));
   }, []);
 
   if (!stats) return <Loader />;

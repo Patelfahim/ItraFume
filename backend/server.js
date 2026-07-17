@@ -60,8 +60,11 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
-  })
+  }),
 );
+// Ensure preflight requests succeed for cookie-based auth (mobile / different origins).
+app.options("*", cors({ origin: process.env.CLIENT_URL, credentials: true }));
+
 app.get("/", (req, res) => {
   res.send("ItraFume Backend is running 🚀");
 });

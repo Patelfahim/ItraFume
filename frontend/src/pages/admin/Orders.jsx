@@ -38,6 +38,10 @@ const AdminOrders = () => {
       setOrders((prev) =>
         prev.map((order) => (order._id === orderId ? data.data.order : order)),
       );
+      // Ensure UI stays in sync with backend (refresh page data)
+      // because some admin tables may keep other computed fields.
+      fetchOrders();
+
       toast.success("Order status updated. Customer notified via email.");
     } catch (err) {
       toast.error(err.message);
@@ -124,7 +128,9 @@ const AdminOrders = () => {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
                     Ship To
                   </p>
-                  <p className="font-medium">{order.shippingAddress.fullName}</p>
+                  <p className="font-medium">
+                    {order.shippingAddress.fullName}
+                  </p>
                   <p className="text-on-surface-variant">
                     {order.shippingAddress.line1}, {order.shippingAddress.city},{" "}
                     {order.shippingAddress.state}{" "}

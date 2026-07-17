@@ -24,10 +24,13 @@ exports.register = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email/${verifyToken}`;
+  // Do not block registration on email delivery.
   try {
-    await sendWelcomeEmail(user, verifyUrl);
+    void sendWelcomeEmail(user, verifyUrl).catch((err) => {
+      console.error("Failed to send welcome email:", err.message);
+    });
   } catch (err) {
-    console.error("Failed to send welcome email:", err.message);
+    console.error("Welcome email init failed:", err.message);
   }
 
   sendTokenResponse(user, 201, res);
@@ -125,20 +128,20 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
+  // Do not block password reset request on email delivery.
   try {
-    await sendPasswordResetEmail(user, resetUrl);
-    res.status(200).json({ success: true, message: genericMessage });
+    void sendPasswordResetEmail(user, resetUrl).catch(async (err) => {
+      console.error("Password reset email failed:", err.message);
+      // In case email sending fails, invalidate tokens to be safe.
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+    });
   } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-    return next(
-      new AppError(
-        "There was an error sending the reset email. Please try again later.",
-        500,
-      ),
-    );
+    console.error("Password reset email init failed:", err.message);
   }
+
+  return res.status(200).json({ success: true, message: genericMessage });
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {

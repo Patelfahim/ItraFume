@@ -159,10 +159,13 @@ exports.verifyRazorpayPayment = catchAsync(async (req, res, next) => {
   await decrementStock(order.items);
 
   const user = await User.findById(req.user._id);
+  // Do not block payment verification on email delivery.
   try {
-    await sendOrderConfirmationEmail(user, order);
+    void sendOrderConfirmationEmail(user, order).catch((err) => {
+      console.error("Order confirmation email failed:", err.message);
+    });
   } catch (err) {
-    console.error("Order confirmation email failed:", err.message);
+    console.error("Order confirmation email init failed:", err.message);
   }
 
   res.status(200).json({ success: true, data: { order } });
@@ -224,7 +227,7 @@ exports.createStripeCheckoutSession = catchAsync(async (req, res, next) => {
     shippingPrice,
     taxPrice,
     totalPrice,
-    currency: "INR", 
+    currency: "INR",
     paymentGateway: "stripe",
   });
 
@@ -277,12 +280,10 @@ exports.createStripeCheckoutSession = catchAsync(async (req, res, next) => {
   order.paymentResult = { orderId: session.id, status: "created" };
   await order.save();
 
-  res
-    .status(201)
-    .json({
-      success: true,
-      data: { sessionId: session.id, url: session.url, orderId: order._id },
-    });
+  res.status(201).json({
+    success: true,
+    data: { sessionId: session.id, url: session.url, orderId: order._id },
+  });
 });
 
 exports.stripeWebhook = catchAsync(async (req, res) => {
@@ -325,10 +326,13 @@ exports.stripeWebhook = catchAsync(async (req, res) => {
       await decrementStock(order.items);
 
       const user = await User.findById(order.user);
+      // Do not block webhook processing on email delivery.
       try {
-        await sendOrderConfirmationEmail(user, order);
+        void sendOrderConfirmationEmail(user, order).catch((err) => {
+          console.error("Order confirmation email failed:", err.message);
+        });
       } catch (err) {
-        console.error("Order confirmation email failed:", err.message);
+        console.error("Order confirmation email init failed:", err.message);
       }
     }
   }
@@ -371,8 +375,8 @@ exports.createCODOrder = catchAsync(async (req, res, next) => {
     totalPrice,
     currency: "INR",
     paymentGateway: "cod",
-    paymentStatus: "pending", 
-    orderStatus: "processing", 
+    paymentStatus: "pending",
+    orderStatus: "processing",
     paymentResult: {
       status: "pending",
       updateTime: new Date().toISOString(),
@@ -388,10 +392,13 @@ exports.createCODOrder = catchAsync(async (req, res, next) => {
   await decrementStock(order.items);
 
   const user = await User.findById(req.user._id);
+  // Do not block COD creation on email delivery.
   try {
-    await sendOrderConfirmationEmail(user, order);
+    void sendOrderConfirmationEmail(user, order).catch((err) => {
+      console.error("Order confirmation email failed:", err.message);
+    });
   } catch (err) {
-    console.error("Order confirmation email failed:", err.message);
+    console.error("Order confirmation email init failed:", err.message);
   }
 
   res.status(201).json({

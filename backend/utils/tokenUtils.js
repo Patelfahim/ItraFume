@@ -15,8 +15,15 @@ exports.sendTokenResponse = (user, statusCode, res) => {
     path: "/",
     expires: new Date(Date.now() + cookieExpiresDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    // Mobile browsers frequently require Secure + SameSite=None when frontend/backend are on different origins.
+    secure:
+      process.env.NODE_ENV === "production" ||
+      process.env.COOKIE_SECURE === "true",
+    sameSite:
+      process.env.NODE_ENV === "production" ||
+      process.env.COOKIE_SAMESITE_NONE === "true"
+        ? "None"
+        : "Lax",
   };
 
   // Return cookie options so controllers can clear the cookie consistently

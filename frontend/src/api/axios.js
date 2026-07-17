@@ -6,6 +6,9 @@ const api = axios.create({
   withCredentials: true, // send httpOnly JWT cookie
   headers: { "Content-Type": "application/json" },
 });
+// Some mobile browsers are strict about credentials preflight handling.
+// Ensure axios always sends cookies for cross-origin requests.
+api.defaults.withCredentials = true;
 
 api.interceptors.response.use(
   (res) => res,
