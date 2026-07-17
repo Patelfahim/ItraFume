@@ -45,7 +45,6 @@ uploadDirs.forEach((dir) => {
   }
 });
 
-
 app.set("trust proxy", 1); // needed behind reverse proxies (Render, Railway, Nginx, etc.) for correct rate-limit/IP + secure cookies
 
 // ---------- SECURITY MIDDLEWARE ----------
@@ -61,7 +60,7 @@ app.use(
   cors({
     origin: "https://itrafume.vercel.app",
     credentials: true,
-  })
+  }),
 );
 
 app.get("/", (req, res) => {
@@ -127,13 +126,26 @@ app.use("/api/upload", uploadRoutes);
 if (process.env.NODE_ENV === "production") {
   const frontendDist = path.join(__dirname, "..", "frontend", "dist");
   app.use(express.static(frontendDist));
+
+  // SPA fallback: always serve index.html for non-API deep links.
+  // This prevents 404 on refresh for routes like /shop or /product/:slug.
   app.get("*", (req, res, next) => {
     if (req.originalUrl.startsWith("/api")) return next();
-    res.sendFile(path.join(frontendDist, "index.html"));
+    return res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
 
 app.all("*", (req, res, next) => {
+  // If frontend SPA fallback didn't match (e.g. method other than GET),
+  // still try to serve index.html so refresh on deep links works.
+  if (
+    process.env.NODE_ENV === "production" &&
+    req.originalUrl &&
+    !req.originalUrl.startsWith("/api")
+  ) {
+    const frontendDist = path.join(__dirname, "..", "frontend", "dist");
+    return res.sendFile(path.join(frontendDist, "index.html"));
+  }
   next(new AppError(`Cannot find ${req.originalUrl} on this server.`, 404));
 });
 

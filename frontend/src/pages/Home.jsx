@@ -82,8 +82,8 @@ const Home = () => {
       <section className="bg-surface-container-low py-16">
         <div className="container-max px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="grid grid-cols-2 gap-4">
-            <img src="/media/images/IMG-20260706-WA0007.jpg" alt="Craft of ItraFume" className="rounded-md object-cover h-64 w-full" />
-            <img src="/media/images/IMG-20260706-WA0018.jpg" alt="Bespoke perfume oils" className="rounded-md object-cover h-64 w-full mt-8" />
+            <img src="/media/images/IMG-20260706-WA0057.jpg" alt="Craft of ItraFume" className="rounded-md object-cover h-64 w-full" />
+            <img src="/media/images/IMG-20260706-WA0032.jpg" alt="Bespoke perfume oils" className="rounded-md object-cover h-64 w-full mt-8" />
           </div>
           <div>
             <p className="text-xs uppercase tracking-wider text-secondary mb-2">Our Craft</p>
