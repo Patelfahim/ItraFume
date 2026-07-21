@@ -26,6 +26,11 @@ const ProductDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState([]);
+  const [brokenMedia, setBrokenMedia] = useState({});
+
+  const handleMediaError = (index) => {
+    setBrokenMedia((prev) => ({ ...prev, [index]: true }));
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -79,12 +84,6 @@ const ProductDetail = () => {
     url: normalizeMediaUrl(m.url),
     thumbnail: normalizeMediaUrl(m.thumbnail),
   }));
-
-  const [brokenMedia, setBrokenMedia] = useState({});
-
-  const handleMediaError = (index) => {
-    setBrokenMedia((prev) => ({ ...prev, [index]: true }));
-  };
 
   const currentMedia = media[activeMedia];
   const hasDiscount = selectedVariant?.compareAtPrice > selectedVariant?.price;
