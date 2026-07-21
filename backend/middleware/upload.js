@@ -1,7 +1,9 @@
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../config/cloudinary");
+const { isConfigured: cloudinaryConfigured } = require("../config/cloudinary");
 const AppError = require("../utils/AppError");
+const path = require("path");
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -44,6 +46,26 @@ const makeCloudinaryStorage = (folder) =>
     },
   });
 
+// Fallback local disk storage when Cloudinary is not configured
+const makeLocalStorage = (folder) =>
+  multer.diskStorage({
+    destination: (req, file, cb) => {
+      const destPath = path.join(__dirname, "..", "uploads", folder);
+      // Ensure directory exists
+      const fs = require("fs");
+      fs.mkdirSync(destPath, { recursive: true });
+      cb(null, destPath);
+    },
+    filename: (req, file, cb) => {
+      const name = file.originalname
+        .replace(/\.[^.]+$/, "")
+        .replace(/[^a-z0-9]/gi, "-")
+        .toLowerCase();
+      const ext = path.extname(file.originalname);
+      cb(null, `${Date.now()}-${name}${ext}`);
+    },
+  });
+
 const fileFilter = (req, file, cb) => {
   const isImage = ALLOWED_IMAGE_TYPES.includes(file.mimetype);
   const isVideo = ALLOWED_VIDEO_TYPES.includes(file.mimetype);
@@ -62,7 +84,9 @@ const fileFilter = (req, file, cb) => {
 
 const buildUploader = (folder) =>
   multer({
-    storage: makeCloudinaryStorage(folder),
+    storage: cloudinaryConfigured
+      ? makeCloudinaryStorage(folder)
+      : makeLocalStorage(folder),
     fileFilter,
     limits: { fileSize: Math.max(MAX_IMAGE_SIZE, MAX_VIDEO_SIZE), files: 10 },
   });
