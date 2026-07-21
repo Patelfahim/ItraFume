@@ -173,6 +173,22 @@ const AdminOrders = () => {
                   }
                   className="input-field w-full text-sm sm:w-56"
                 />
+                {order.paymentGateway === "cod" && !order.isPaid && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await api.patch(`/admin/orders/${order._id}/mark-paid`);
+                        toast.success("Order marked as paid.");
+                        fetchOrders();
+                      } catch (err) {
+                        toast.error(err.message);
+                      }
+                    }}
+                    className="btn-outline text-xs px-3 py-2 whitespace-nowrap"
+                  >
+                    Mark as Paid
+                  </button>
+                )}
               </div>
             </article>
           ))}

@@ -83,6 +83,7 @@ const Checkout = () => {
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
       toast.error("Unable to load Razorpay. Check your internet connection.");
+      setProcessing(false);
       return;
     }
 

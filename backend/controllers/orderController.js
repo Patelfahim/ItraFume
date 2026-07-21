@@ -50,6 +50,31 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 
 // ---------- ADMIN ----------
 
+exports.markOrderAsPaid = catchAsync(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return next(new AppError("Order not found.", 404));
+
+  if (order.isPaid) {
+    return next(new AppError("Order is already marked as paid.", 400));
+  }
+
+  order.isPaid = true;
+  order.paidAt = new Date();
+  order.paymentStatus = "paid";
+  order.paymentResult = {
+    ...order.paymentResult,
+    status: "paid",
+    updateTime: new Date().toISOString(),
+  };
+  order.statusHistory.push({
+    status: order.orderStatus,
+    note: "Payment confirmed as paid (COD).",
+  });
+  await order.save();
+
+  res.status(200).json({ success: true, data: { order } });
+});
+
 exports.getAllOrders = catchAsync(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
   const filter = {};
