@@ -10,6 +10,7 @@ const compression = require("compression");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const xss = require("xss-clean");
+const path = require("path");
 
 const connectDB = require("./config/db");
 const AppError = require("./utils/AppError");
@@ -28,22 +29,6 @@ const paymentController = require("./controllers/paymentController");
 connectDB();
 
 const app = express();
-
-const fs = require("fs");
-const path = require("path");
-
-const uploadDirs = [
-  path.join(__dirname, "uploads"),
-  path.join(__dirname, "uploads", "products"),
-  path.join(__dirname, "uploads", "reviews"),
-  path.join(__dirname, "uploads", "avatars"),
-];
-
-uploadDirs.forEach((dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
 
 app.set("trust proxy", 1); // needed behind reverse proxies (Render, Railway, Nginx, etc.) for correct rate-limit/IP + secure cookies
 
@@ -106,9 +91,6 @@ const globalLimiter = rateLimit({
   },
 });
 app.use("/api", globalLimiter);
-
-// Static file serving for uploaded product/review/avatar media
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ---------- ROUTES ----------
 app.get("/api/health", (req, res) =>
