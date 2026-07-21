@@ -101,6 +101,8 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   if (status === "delivered") {
     order.isDelivered = true;
     order.deliveredAt = new Date();
+    order.isPaid = true;
+    order.paidAt = new Date();
   }
   order.statusHistory.push({ status, note });
   await order.save();
@@ -121,7 +123,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 exports.getDashboardStats = catchAsync(async (req, res) => {
   const [totalOrders, totalRevenueAgg, pendingOrders, totalUsers] =
     await Promise.all([
-      Order.countDocuments({ isPaid: true }),
+      Order.countDocuments(),
       Order.aggregate([
         { $match: { isPaid: true } },
         { $group: { _id: null, total: { $sum: "$totalPrice" } } },
@@ -130,7 +132,7 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
       User.countDocuments({ role: "customer" }),
     ]);
 
-  const recentOrders = await Order.find({ isPaid: true })
+  const recentOrders = await Order.find()
     .populate("user", "name")
     .sort({ createdAt: -1 })
     .limit(5);

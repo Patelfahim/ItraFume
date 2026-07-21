@@ -18,6 +18,7 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [trackingDrafts, setTrackingDrafts] = useState({});
+  const [statusDrafts, setStatusDrafts] = useState({});
 
   const fetchOrders = () => {
     setLoading(true);
@@ -29,21 +30,31 @@ const AdminOrders = () => {
 
   useEffect(fetchOrders, [filter]);
 
-  const updateStatus = async (orderId, status) => {
+  const updateStatus = async (orderId, newStatus) => {
+    // Immediately reflect the selected status in the UI so the dropdown doesn't snap back
+    setStatusDrafts((prev) => ({ ...prev, [orderId]: newStatus }));
     try {
       const { data } = await api.patch(`/admin/orders/${orderId}/status`, {
-        status,
+        status: newStatus,
         trackingNumber: trackingDrafts[orderId],
       });
       setOrders((prev) =>
         prev.map((order) => (order._id === orderId ? data.data.order : order)),
       );
-      // Ensure UI stays in sync with backend (refresh page data)
-      // because some admin tables may keep other computed fields.
-      fetchOrders();
-
+      // Clear the draft so future renders use the server value
+      setStatusDrafts((prev) => {
+        const copy = { ...prev };
+        delete copy[orderId];
+        return copy;
+      });
       toast.success("Order status updated. Customer notified via email.");
     } catch (err) {
+      // On error revert the draft so the real server value shows again
+      setStatusDrafts((prev) => {
+        const copy = { ...prev };
+        delete copy[orderId];
+        return copy;
+      });
       toast.error(err.message);
     }
   };
@@ -141,7 +152,7 @@ const AdminOrders = () => {
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <select
-                  value={order.orderStatus}
+                  value={statusDrafts[order._id] || order.orderStatus}
                   onChange={(e) => updateStatus(order._id, e.target.value)}
                   className="input-field w-full text-sm capitalize sm:w-44"
                 >
