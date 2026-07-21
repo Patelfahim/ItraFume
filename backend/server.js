@@ -53,6 +53,23 @@ app.options("*", cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.get("/", (req, res) => {
   res.send("ItraFume Backend is running 🚀");
 });
+// Serve uploaded media files (local fallback for development)
+// In production, media should be served via Cloudinary URLs.
+// This ensures old products with /uploads/ paths still work.
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Also serve /media/ paths for seed data images (from frontend/public/media/)
+// This allows seed data images to work when frontend (Vercel) calls backend (Render)
+const frontendPublicMedia = path.join(
+  __dirname,
+  "..",
+  "frontend",
+  "public",
+  "media",
+);
+if (require("fs").existsSync(frontendPublicMedia)) {
+  app.use("/media", express.static(frontendPublicMedia));
+}
+
 // Webhooks need the RAW body for signature verification, so they must be
 // registered BEFORE the global express.json() body parser.
 app.post(

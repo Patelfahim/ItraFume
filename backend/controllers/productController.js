@@ -114,11 +114,16 @@ exports.createProduct = catchAsync(async (req, res, next) => {
       .map((t) => t.trim())
       .filter(Boolean);
 
-  const media = (req.files || []).map((file) => ({
-    type: file.__mediaType,
-    url: file.path,
-    alt: body.name,
-  }));
+  const media = (req.files || []).map((file) => {
+    console.log(
+      `[createProduct] File uploaded — type: ${file.__mediaType}, path/url: ${file.path}, filename: ${file.filename}, originalName: ${file.originalname}`,
+    );
+    return {
+      type: file.__mediaType,
+      url: file.path,
+      alt: body.name,
+    };
+  });
 
   let slug = slugify(body.name);
   const slugExists = await Product.findOne({ slug });
@@ -190,11 +195,16 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
   }
 
   if (req.files && req.files.length > 0) {
-    const newMedia = req.files.map((file) => ({
-      type: file.__mediaType,
-      url: file.path,
-      alt: product.name,
-    }));
+    const newMedia = req.files.map((file) => {
+      console.log(
+        `[updateProduct] File uploaded — type: ${file.__mediaType}, path/url: ${file.path}, filename: ${file.filename}`,
+      );
+      return {
+        type: file.__mediaType,
+        url: file.path,
+        alt: product.name,
+      };
+    });
     product.media.push(...newMedia);
   }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FiShoppingBag, FiCreditCard, FiTruck } from "react-icons/fi";
@@ -11,8 +11,15 @@ const loadRazorpayScript = () =>
     if (window.Razorpay) return resolve(true);
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
+    const timer = setTimeout(() => resolve(false), 10000); // 10s timeout
+    script.onload = () => {
+      clearTimeout(timer);
+      resolve(true);
+    };
+    script.onerror = () => {
+      clearTimeout(timer);
+      resolve(false);
+    };
     document.body.appendChild(script);
   });
 
@@ -34,6 +41,7 @@ const Checkout = () => {
   const [address, setAddress] = useState(emptyAddress);
   const [gateway, setGateway] = useState("razorpay");
   const [processing, setProcessing] = useState(false);
+  const navigatedRef = useRef(false); // tracks if we navigated away
 
   const shippingPrice = subtotal >= 999 ? 0 : 99;
   const totalPrice = subtotal + shippingPrice;
@@ -110,6 +118,7 @@ const Checkout = () => {
         try {
           await api.post("/payments/razorpay/verify", { orderId, ...response });
           clearCart();
+          navigatedRef.current = true;
           toast.success("Payment successful!");
           navigate(`/order-success?orderId=${orderId}`);
         } catch (err) {
@@ -118,7 +127,9 @@ const Checkout = () => {
         }
       },
       modal: {
-        ondismiss: () => setProcessing(false),
+        ondismiss: () => {
+          setProcessing(false);
+        },
       },
     };
 
@@ -135,27 +146,26 @@ const Checkout = () => {
       "/payments/stripe/create-checkout-session",
       cartPayload(),
     );
+    navigatedRef.current = true;
+    // Navigate away — page will unload
     window.location.href = data.data.url;
   };
 
   const handleCODPayment = async () => {
-    try {
-      const { data } = await api.post(
-        "/payments/cod/create-order",
-        cartPayload(),
-      );
-      clearCart();
-      toast.success("Order placed! Payment due on delivery.");
-      navigate(`/order-success?orderId=${data.data.orderId}`);
-    } catch (err) {
-      toast.error(err.message || "Failed to create COD order.");
-      setProcessing(false);
-    }
+    const { data } = await api.post(
+      "/payments/cod/create-order",
+      cartPayload(),
+    );
+    clearCart();
+    navigatedRef.current = true;
+    toast.success("Order placed! Payment due on delivery.");
+    navigate(`/order-success?orderId=${data.data.orderId}`);
   };
 
   const handlePay = async () => {
     if (!validateAddress()) return;
     setProcessing(true);
+    navigatedRef.current = false;
     try {
       if (gateway === "razorpay") {
         await handleRazorpayPayment();
@@ -168,6 +178,11 @@ const Checkout = () => {
       toast.error(
         err.message || "Something went wrong while starting payment.",
       );
+    }
+    // Safety net: only re-enable button if we haven't navigated away.
+    // For Razorpay, the modal callbacks (ondismiss, payment.failed, handler catch)
+    // call setProcessing(false) themselves. This handles API errors before modal opens.
+    if (!navigatedRef.current) {
       setProcessing(false);
     }
   };

@@ -5,6 +5,7 @@ const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL}/api`,
   withCredentials: true, // send httpOnly JWT cookie
   headers: { "Content-Type": "application/json" },
+  timeout: 30000, // 30 seconds — prevents infinite loading on network issues
 });
 // Some mobile browsers are strict about credentials preflight handling.
 // Ensure axios always sends cookies for cross-origin requests.

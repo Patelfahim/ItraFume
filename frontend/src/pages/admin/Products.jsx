@@ -176,12 +176,16 @@ const AdminProducts = () => {
                   <td className="p-3 flex items-center gap-3 ">
                     <img
                       src={
-                        p.media?.[0]?.url?.startsWith("/uploads/")
+                        p.media?.[0]?.url?.startsWith("/uploads/") ||
+                        p.media?.[0]?.url?.startsWith("/media/")
                           ? `${import.meta.env.VITE_API_URL}${p.media[0].url}`
                           : p.media?.[0]?.url
                       }
                       alt={p.name}
                       className="w-10 h-10 rounded-sm object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
                     />
                     <span className="md:font-medium text-xs">{p.name}</span>
                   </td>
@@ -236,9 +240,11 @@ const AdminProducts = () => {
                 <div className="flex flex-wrap gap-3">
                   {(products.find((p) => p._id === editingId)?.media || []).map(
                     (m, i) => {
-                      const src = m.url?.startsWith("/uploads/")
-                        ? `${import.meta.env.VITE_API_URL}${m.url}`
-                        : m.url;
+                      const src =
+                        m.url?.startsWith("/uploads/") ||
+                        m.url?.startsWith("/media/")
+                          ? `${import.meta.env.VITE_API_URL}${m.url}`
+                          : m.url;
 
                       return (
                         <div key={`${m.url || "media"}-${i}`} className="w-24">

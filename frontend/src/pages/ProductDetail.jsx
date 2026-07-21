@@ -8,6 +8,7 @@ import {
   FiShoppingBag,
   FiTruck,
   FiShield,
+  FiImage,
 } from "react-icons/fi";
 import api from "../api/axios";
 import { useCart } from "../context/CartContext";
@@ -65,7 +66,12 @@ const ProductDetail = () => {
     if (typeof url === "string" && url.startsWith("/uploads/")) {
       return `${apiBaseUrl}${url}`;
     }
-    return url; // already absolute (or something else)
+    // Seed data uses /media/ paths which are served from frontend public/
+    // On Vercel we need to proxy these through the backend or use the API URL
+    if (typeof url === "string" && url.startsWith("/media/")) {
+      return `${apiBaseUrl}${url}`;
+    }
+    return url; // already absolute (Cloudinary URL or external)
   };
 
   const media = (product.media || []).map((m) => ({
@@ -73,6 +79,12 @@ const ProductDetail = () => {
     url: normalizeMediaUrl(m.url),
     thumbnail: normalizeMediaUrl(m.thumbnail),
   }));
+
+  const [brokenMedia, setBrokenMedia] = useState({});
+
+  const handleMediaError = (index) => {
+    setBrokenMedia((prev) => ({ ...prev, [index]: true }));
+  };
 
   const currentMedia = media[activeMedia];
   const hasDiscount = selectedVariant?.compareAtPrice > selectedVariant?.price;
@@ -98,7 +110,14 @@ const ProductDetail = () => {
         {/* Media gallery */}
         <div>
           <div className="aspect-square bg-surface-container rounded-md overflow-hidden mb-4">
-            {currentMedia?.type === "video" ? (
+            {brokenMedia[activeMedia] ? (
+              <div className="w-full h-full flex items-center justify-center bg-surface-container-high text-on-surface-variant">
+                <div className="text-center">
+                  <FiImage size={48} className="mx-auto mb-2 opacity-40" />
+                  <p className="text-xs">Image unavailable</p>
+                </div>
+              </div>
+            ) : currentMedia?.type === "video" ? (
               <video
                 src={currentMedia.url}
                 controls
@@ -107,12 +126,14 @@ const ProductDetail = () => {
                 loop
                 poster={currentMedia?.thumbnail}
                 className="w-full h-full object-cover"
+                onError={() => handleMediaError(activeMedia)}
               />
             ) : (
               <img
                 src={currentMedia?.url}
                 alt={currentMedia?.alt || product.name}
                 className="w-full h-full object-cover"
+                onError={() => handleMediaError(activeMedia)}
               />
             )}
           </div>
@@ -125,12 +146,17 @@ const ProductDetail = () => {
                   idx === activeMedia ? "border-primary" : "border-transparent"
                 }`}
               >
-                {m.type === "video" ? (
+                {brokenMedia[idx] ? (
+                  <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                    <FiImage size={16} className="opacity-30" />
+                  </div>
+                ) : m.type === "video" ? (
                   <>
                     <video
                       src={m.url}
                       className="w-full h-full object-cover"
                       muted
+                      onError={() => handleMediaError(idx)}
                     />
                     <span className="absolute inset-0 flex items-center justify-center bg-black/30">
                       <FiPlay className="text-white" size={14} />
@@ -141,6 +167,7 @@ const ProductDetail = () => {
                     src={m.url}
                     alt={m.alt}
                     className="w-full h-full object-cover"
+                    onError={() => handleMediaError(idx)}
                   />
                 )}
               </button>

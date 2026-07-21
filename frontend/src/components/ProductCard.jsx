@@ -1,12 +1,18 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { FiImage } from "react-icons/fi";
 import StarRating from "./StarRating";
 
 const ProductCard = ({ product }) => {
   const apiBaseUrl = import.meta.env.VITE_API_URL;
+  const [imgError, setImgError] = useState(false);
 
   const normalizeMediaUrl = (url) => {
     if (!url) return url;
     if (typeof url === "string" && url.startsWith("/uploads/")) {
+      return `${apiBaseUrl}${url}`;
+    }
+    if (typeof url === "string" && url.startsWith("/media/")) {
       return `${apiBaseUrl}${url}`;
     }
     return url;
@@ -31,12 +37,17 @@ const ProductCard = ({ product }) => {
       className="card group block overflow-hidden"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-surface-container">
-        {image ? (
+        {imgError ? (
+          <div className="w-full h-full flex items-center justify-center bg-surface-container-high">
+            <FiImage size={32} className="opacity-30" />
+          </div>
+        ) : image ? (
           <img
             src={image?.url}
             alt={image?.alt || product.name}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary-container/20" />
